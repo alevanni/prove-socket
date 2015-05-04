@@ -1,0 +1,46 @@
+class chat extends Thread {
+ public String nome1;
+ public String nome2;
+ public Scanner in1, in2;
+ public PrintWriter out1, out2;
+ public chat(String client1, String client2, Scanner in1, Scanner in2, PrintWriter out1, PrintWriter out2) {//costruttore
+  this.nome1=client1;
+  this.nome2=client2;
+  this.in1=in1;
+  this.out1=out1;
+  this.in2=in2;
+  this.out2=out2;
+  }//costruttore
+ 
+  public void run() {
+   
+   String line;
+   
+      
+      
+      //output del secondo
+      
+      System.out.println("Chat started");
+       while (true) {
+          //stringa spedita da 1
+          line=in1.nextLine();
+          System.out.println(nome1 + " says: " +line); 
+          if (line.equals("quit")) { break ; }
+          else {       
+                   
+             out2.println(nome1 + " says: " +line);
+             out2.flush();
+             }
+               
+          
+        }//while
+         //ora chiudo tutto
+         
+         out2.close();
+         in1.close();
+       
+  
+   
+   }//run
+}//class
+
