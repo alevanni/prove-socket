@@ -9,16 +9,17 @@ import java.io.*;
 import java.net.*;
 
 
-class ricevi implements Runnable {
-private Socket socket1, socket2;
-public String nome;
-public ricevi (Socket socket1, Socket socket2, String a ) {
-this.socket1=socket1;
-this.socket2=socket2;
-this.nome=a;
-}//costruttore
-
-public void run() {
+//classe che gestisce i client
+class EchoServerClientHandler implements Runnable {
+  private Socket socket1, socket2;
+  
+  public EchoServerClientHandler(Socket socket1, Socket socket2) {
+    this.socket1=socket1;
+    this.socket2=socket2;
+  }//costruttore
+  
+  public void run() {
+     
      Scanner in1, in2;
      PrintWriter out1, out2;
      String line;
@@ -37,9 +38,9 @@ public void run() {
             if (line.equals("quit")) { break ;} 
             else {
                //stampo da lato client
-               out2.println(nome +" says: " +line);
+               out2.println("Received:"+line);
                //stampo da lato server  
-               System.out.println( nome+ " says: "+ line+ " on socket "+ socket1);
+               System.out.println( "bla bla says: "+ line+ " from socket "+ socket1);
                out2.flush();
                }
 
@@ -53,14 +54,15 @@ public void run() {
          in2.close();
          out2.close();
          socket2.close();
-      }//try
+       }//try
       catch (IOException e ){
         System.err.println(e.getMessage());
        }//catch  
 
+   }//run
 
-}
-}//class
+
+}//echoserverclienthandler
  ////////////////////
  
 class MultiEchoServer {
@@ -106,10 +108,10 @@ public void startServer() {//startServer
        //passo la richiesta alla chat
        out1.println("Chat ready!");
        out1.flush();
-       out2.println("Chat ready");
+       out2.println("Chat ready!");
        out2.flush();
-       executor.submit(new ricevi(socket1, socket2, "tizio")); 
-       executor.submit(new ricevi(socket2, socket1, "caio"));
+       executor.submit(new EchoServerClientHandler(socket1, socket2)); 
+       executor.submit(new EchoServerClientHandler(socket2, socket1));
        }//try
      catch (IOException e) {
          break; //ci entro se serversocket viene chiuso
