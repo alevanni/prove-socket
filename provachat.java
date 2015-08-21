@@ -35,7 +35,14 @@ class EchoServerClientHandler implements Runnable {
          while (true){
             line=in1.nextLine();
              
-            if (line.equals("quit")) { break ;} 
+            if (line.equals("quit")) { 
+               //devo dire al client di chiudere a connessione in entrata
+               out1.println("quit");
+               out1.flush();
+                 //stampo da lato client
+               out2.println("L'altro ha chiuso la connessione");
+               out2.flush();
+                 break ;} 
             else {
                //stampo da lato client
                out2.println("Received:"+line);
@@ -58,7 +65,7 @@ class EchoServerClientHandler implements Runnable {
       catch (IOException e ){
         System.err.println(e.getMessage());
        }//catch  
-
+        System.out.println("Connessione chiusa da"+ socket1);
    }//run
 
 
@@ -110,6 +117,7 @@ public void startServer() {//startServer
        out1.flush();
        out2.println("Chat ready!");
        out2.flush();
+       //grazie a due processi distinti posso mandare un messaggio senza attendere la risposta dell'altro
        executor.submit(new EchoServerClientHandler(socket1, socket2)); 
        executor.submit(new EchoServerClientHandler(socket2, socket1));
        }//try
@@ -128,7 +136,7 @@ public void startServer() {//startServer
 
 public class provachat {
 public static void main(String[] args) {
-  MultiEchoServer echoserver=new MultiEchoServer(4331);
+  MultiEchoServer echoserver=new MultiEchoServer(4332);
   echoserver.startServer(); //attivo il server
 }//main
 
