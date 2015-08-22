@@ -40,9 +40,11 @@ class EchoServerClientHandler implements Runnable {
                out1.println("quit");
                out1.flush();
                  //stampo da lato client
-               out2.println("L'altro ha chiuso la connessione");
+               out2.println("L'altro ha chiuso la connessione: per chiudere digitare 'quit'");
                out2.flush();
-                 break ;} 
+               out2.println("quit");
+               out2.flush();
+                 break;} 
             else {
                //stampo da lato client
                out2.println("Received:"+line);
@@ -65,7 +67,7 @@ class EchoServerClientHandler implements Runnable {
       catch (IOException e ){
         System.err.println(e.getMessage());
        }//catch  
-        System.out.println("Connessione chiusa da"+ socket1);
+        System.out.println("Connessione chiusa da "+ socket1);
    }//run
 
 

@@ -15,6 +15,7 @@ class chatclient  {
   private int port; //numero della porta
   private InetAddress ip; //indirizzo ip
   Thread send, receive;
+  boolean stopthread=false; //per interrompere
 public chatclient(InetAddress ip, int port) { //costruttore
   this.port=port;
   this.ip=ip;
@@ -72,7 +73,7 @@ public void startClient() throws IOException {//metodo
    }
 
   //Attenzione, chiude i thread perche' si chiude subito!
- 
+ System.out.println("Chiuso startclient");
 }//metodo
 
 
@@ -86,18 +87,18 @@ class invia implements Runnable  {
   this.socketOut=socketOut;
 }//costruttore
  public void run()  {
-   
+   boolean stopthread=false;
    //per prendere da tastiera
    Scanner stdin = new Scanner(System.in);
    String line;
    
    //Scanner socketIn;
-   try {
+  // try {
      
        //per mandare al server
         //socketOut=new PrintWriter(this.socket.getOutputStream());
         //socketIn=new Scanner(this.socket.getInputStream());
-        while (true)  {
+        while (!stopthread)  {
       
           System.out.print("I say: ");
          
@@ -105,22 +106,26 @@ class invia implements Runnable  {
           line = stdin.nextLine();
          
           if (line.equals("quit")) {
-              socket.close();
-              break ;}
+              
+              stopthread=true;
+              socketOut.println(line);
+              socketOut.flush();
+              }
           else {
             socketOut.println(line);
             socketOut.flush();
           }//else
          }//while
-         socket.close();
-     }//try
+         this.socketOut.close();
+   //  }//try
       
-    catch(IOException e ) {
-        System.out.println("Connection Closed by invia");
-     } // catch
+    //catch(IOException e ) {
+      //  System.out.println("Connection Closed by invia");
+     //} // catch
 
     
-    
+ System.out.println("Connessione chiusa da 'invia' ");   
+
 }//run
 
 }
@@ -138,35 +143,38 @@ class ricevi implements Runnable {
  
  //PrintWriter socketOut;
  String socketline;
- 
+ boolean stopthread=false;
   try {
      //socketOut=new PrintWriter(this.socket.getOutputStream());
      //socketIn=new Scanner(this.socket.getInputStream());
      
       
-     while (true) { 
+     while (!stopthread) { 
        
         if (socketIn.hasNextLine())  {
             socketline=socketIn.nextLine();
          
-            if (socketline.equals("quit")) { break; }
+            if (socketline.equals("quit")) { 
+                   stopthread=true;
+                   
+             }
             else {
                System.out.println(socketline);
             }//else
          }
          //else Thread.sleep(2000);
       }//while
-   
+   this.socket.close();
    
 
-socket.close();
+
   }
  catch (IOException e){
   System.out.println("Connection Closed by ricevi");
 
   } 
    
- 
+ System.out.println("Chiuso ricevi");
  }//run
 }//ricevi
 
@@ -187,6 +195,7 @@ public class provachatclient {
       chatclient prova=new chatclient(InetAddress.getByName(address), porta);
 
       try {
+           //attivo startclient
           prova.startClient(); 
        }//try
       catch (IOException e ){
@@ -198,8 +207,7 @@ public class provachatclient {
       System.out.println("Host sconosciuto");
   }
 
-
-  //attivo startclient  
+ 
   
  }//main
 
