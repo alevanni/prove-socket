@@ -14,51 +14,51 @@ import java.util.concurrent.*;
 //correggi la prima
 //prova la connessione sul localhost
 class chatclient  {
-  private int port; //numero della porta
-  private InetAddress ip; //indirizzo ip
-  Thread send, receive;
-  boolean stopthread=false; //per interrompere
-public chatclient(InetAddress ip, int port) { //costruttore
-  this.port=port;
-  this.ip=ip;
-}//costruttore
+    private int port; //numero della porta
+    private InetAddress ip; //indirizzo ip
+    Thread send, receive; //ci sono due thread, uno per ricevere e uno per mandare
+    boolean stopthread=false; //per interrompere
+
+    public chatclient(InetAddress ip, int port) {
+        this.port=port;
+        this.ip=ip;
+    }//costruttore
  
 
-public void startClient() throws IOException {//metodo
+    public void startClient() throws IOException {//metodo
 
- String avvio;
- Socket socket=new Socket(ip, port);
- //ci sono due thread, uno per ricevere e uno per mandare  
+        String avvio;
+        Socket socket=new Socket(ip, port);
+        Scanner stdin = new Scanner(System.in); 
+        Scanner socketIn ;
+        PrintWriter socketOut;
+        String s;  
  
- 
- Scanner stdin = new Scanner(System.in); 
- Scanner socketIn ;
- PrintWriter socketOut;
- String s;  
- 
-  try {
-    socketOut = new PrintWriter(socket.getOutputStream());
-    socketIn = new Scanner(socket.getInputStream()) ;
-    System.out.println("Connection estabilished");
-    //sono connesso con il server, attendo notifiche
-    avvio=socketIn.nextLine();
-    System.out.println(avvio);
+        try {
+             socketOut = new PrintWriter(socket.getOutputStream());
+             socketIn = new Scanner(socket.getInputStream()) ;
+             System.out.println("Connection estabilished");
+             //sono connesso con il server, attendo notifiche
+             avvio=socketIn.nextLine();
+             //stampo l'avviso di avvenuta connessione
+             System.out.println(avvio);
         
-    this.send=new Thread(new invia(socket, socketOut)) ;
-    this.receive=new Thread(new ricevi(socket, socketIn));
-    send.start();
-    receive.start();
+             this.send=new Thread(new Send(socket, socketOut)) ;
+             this.receive=new Thread(new Receive(socket, socketIn));
+             
+             send.start();
+             receive.start();
      
-   }
-   catch (IOException e) {
-     System.out.println("Error");
-     socket.close();
-     
-   }
+        }
+ 
+        catch (IOException e) {
+             System.out.println("Error");
+             socket.close();
+        }
 
   
- //System.out.println("Chiuso startclient");
-}//metodo
+       //System.out.println("Chiuso startclient");
+    }
 
 
 }
@@ -124,8 +124,7 @@ class Receive implements Runnable {
         String socketline;
         boolean stopthread=false; //variabile di controllo
      
-      try {   
-      
+          
          while (!stopthread) { 
        
             if (socketIn.hasNextLine())  {
@@ -142,12 +141,9 @@ class Receive implements Runnable {
          }
 
          this.socketIn.close();
-     }
+    
 
-     catch (IOException e){
-         System.out.println("You cannot receive messages");
-     }
-     
+         
      System.out.println("You cannot receive messages");
     }
 }
