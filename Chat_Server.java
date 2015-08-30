@@ -8,74 +8,43 @@ import java.net.ServerSocket;
 import java.io.*;
 import java.net.*;
 
+/////////////////////////////////////////////////
+// PROGRAMMA CHE GESTISCE IL SERVER DELLA CHAT // 
+/////////////////////////////////////////////////
 
-//classe che gestisce i client
-class ChatServerClientHandler implements Runnable {
+//classe che riceve i messaggi da un client e li passa all'altro
+class ChatServerClientHandler extends Thread {
 
-    private Socket socket1, socket2;
-  
-    public ChatServerClientHandler(Socket given_socket1, Socket given_socket2) {
-         this.socket1=given_socket1;
-         this.socket2=given_socket2;
+    private Scanner in;
+    private PrintWriter  out;
+    private Socket socket;
+    public ChatServerClientHandler(Socket given_socket, Scanner given_in, PrintWriter given_out) {
+         this.in=given_in;
+         this.socket=given_socket;
+         this.out=given_out;
+         
     }
   
     public void run() {
      
-         Scanner in1, in2;
-         PrintWriter out1, out2;
          String line;
-     
-         try {
-              //input e output
-              in1=new Scanner(socket1.getInputStream());
-              out1= new PrintWriter(socket1.getOutputStream());
-              
-              in2=new Scanner(socket2.getInputStream());
-              out2= new PrintWriter(socket2.getOutputStream());
-               
-              while (true){
+         boolean stopthread=false;
+         
+                      
+              while (!stopthread){
              
-                   line=in1.nextLine();
-             
-                   if (line.equals("quit")) { 
-                        //devo dire al client di chiudere a connessione in entrata
-                        out1.println("quit");
-                        out1.flush();
-                        //stampo da lato client
-                        out2.println("L'altro ha chiuso la connessione: per chiudere digitare 'quit'");
-                        out2.flush();
-                        out2.println("quit");
-                        out2.flush();
-                        break;
-                   } 
-                   else {
-                        //stampo da lato client
-                        out2.println("Received:"+line);
-                        //stampo da lato server  
-                        System.out.println( "bla bla says: "+ line+ " from socket "+ socket1);
-                        out2.flush();
-                   }
+                   line=in.nextLine();
+                   out.println(line);
+                   out.flush();
+                   
+                   if (line.equals("quit")) stopthread=true;
 
               } 
 
-              //ora chiudo tutto
-              in1.close();
-              out1.close();
-              socket1.close();
-
-              in2.close();
-              out2.close();
-              socket2.close();
-         }
-      
-         catch (IOException e ){
-              System.err.println(e.getMessage());
-         }  
-        
-         System.out.println("Connection Closed by "+ socket1);
+              System.out.println("Connection Closed by "+ socket);
+    
+               
     }
-
-
 }
  ////////////////////
  
@@ -129,12 +98,13 @@ class chatserver {
                    out2.flush();
             
                    //grazie a due processi distinti posso mandare un messaggio senza attendere la risposta dell'altro
-                   executor.submit(new ChatServerClientHandler(socket1, socket2)); 
-                   executor.submit(new ChatServerClientHandler(socket2, socket1));
+                   //li inizializzo con gli scanner e i printwriter
+                   executor.submit(new ChatServerClientHandler(socket1, in1, out2)); 
+                   executor.submit(new ChatServerClientHandler(socket2, in2, out1));
               } 
 
               catch (IOException e) {
-                   break; //ci entro se serversocket viene chiuso
+                   break; 
               }
          }
 
@@ -143,8 +113,8 @@ class chatserver {
     }
 }
 
-
-
+///////////////////////////////////////
+//Main
 public class Chat_Server {
 
     public static void main(String[] args) {
