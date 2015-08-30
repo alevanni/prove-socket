@@ -11,13 +11,13 @@ import java.util.concurrent.*;
 /////////////////////////////////////////////////
 // PROGRAMMA CHE GESTISCE IL CLIENT DELLA CHAT // 
 /////////////////////////////////////////////////
-//correggi la prima
-//prova la connessione sul localhost
+
+//classe che lancia due thread, uno per mandare messaggi e uno per riceverli
 class chatclient  {
-    private int port; //numero della porta
-    private InetAddress ip; //indirizzo ip
-    Thread send, receive; //ci sono due thread, uno per ricevere e uno per mandare
-    boolean stopthread=false; //per interrompere
+    private int port; 
+    private InetAddress ip; 
+    Thread send, receive; 
+    boolean stopthread=false; 
 
     public chatclient(InetAddress ip, int port) {
         this.port=port;
@@ -25,9 +25,9 @@ class chatclient  {
     }//costruttore
  
 
-    public void startClient() throws IOException {//metodo
+    public void startClient() throws IOException, InterruptedException {
 
-        String avvio;
+        String launch;
         Socket socket=new Socket(ip, port);
         Scanner stdin = new Scanner(System.in); 
         Scanner socketIn ;
@@ -38,17 +38,17 @@ class chatclient  {
              socketOut = new PrintWriter(socket.getOutputStream());
              socketIn = new Scanner(socket.getInputStream()) ;
              System.out.println("Connection estabilished");
+
              //sono connesso con il server, attendo notifiche
-             avvio=socketIn.nextLine();
-             //stampo l'avviso di avvenuta connessione
-             System.out.println(avvio);
-        
-             this.send=new Thread(new Send(socket, socketOut)) ;
-             this.receive=new Thread(new Receive(socket, socketIn));
+             launch=socketIn.nextLine();             
+             System.out.println(launch);
+             System.out.println("If you want to exit, just type 'quit' ");
+
+             this.send=new Thread(new Send(socketOut)) ;
+             this.receive=new Thread(new Receive(socketIn));
              
              send.start();
              receive.start();
-     
         }
  
         catch (IOException e) {
@@ -56,73 +56,69 @@ class chatclient  {
              socket.close();
         }
 
-  
-       //System.out.println("Chiuso startclient");
+        
+       
     }
 
 
 }
 //////////////////////////////////////////////////////////////////////////////
-//elimina il socket non ti serve
+//Thread per mandare i messaggi
+
 class Send implements Runnable  {
 
-   private Socket socket;
    private PrintWriter socketOut;
    
 
-   public Send(Socket given_socket, PrintWriter given_socketOut) {
-       this.socket=given_socket;
+   public Send(PrintWriter given_socketOut) {
+       
        this.socketOut=given_socketOut;
     }
 
 
    public void run()  {
+
        boolean stopthread=false;
-       Scanner stdin = new Scanner(System.in); //per prendere da tastiera
+       Scanner stdin = new Scanner(System.in); 
        String line;
    
        while (!stopthread)  {
       
            System.out.print("I say: ");
            line = stdin.nextLine();
-         
+           socketOut.println(line);
+           socketOut.flush();
+
            if (line.equals("quit")) {
               stopthread=true;
-              socketOut.println(line);
-              socketOut.flush();
            }
-           else {
-              socketOut.println(line);
-              socketOut.flush();
-           }
+             
        }
-       this.socketOut.close();
-      
-       System.out.println("You cannot send messages");   
-
-    }
-
+       
+       System.out.println("You can't send messages anymore");   
+   }
 }
 
 //////////////////////////////////////////////////////////////////////////////
-//elimina il socket, non ti serve
+// Thread per ricevere messaggi
+
+
 class Receive implements Runnable {
 
-    private Socket socket;
     private Scanner socketIn;
     
 
-    public Receive(Socket given_socket, Scanner given_socketIn)  {
-        this.socket=given_socket;
+    public Receive(Scanner given_socketIn)  {
+        
         this.socketIn=given_socketIn;
 
     }
  
 
-   public void run()  {
+    public void run()  {
      
         String socketline;
-        boolean stopthread=false; //variabile di controllo
+        boolean stopthread=false; 
      
           
          while (!stopthread) { 
@@ -130,29 +126,28 @@ class Receive implements Runnable {
             if (socketIn.hasNextLine())  {
                 socketline=socketIn.nextLine();
          
-                if (socketline.equals("quit")) { 
-                     stopthread=true;
-                }
-                else  {
-                     System.out.println(socketline);
-                }
+                if (socketline.equals("quit"))  stopthread=true;         
+                
+                else    System.out.println("Received: "+ socketline)   ;             
             }
          
          }
 
-         this.socketIn.close();
+         System.out.println("You can't receive messages anymore.");
+         
     
 
          
-     System.out.println("You cannot receive messages");
+         
     }
 }
 
 ////////////////////////////////////////////////////////////////////
- //gia' corretto
-public class Chat_Client {
+//Main
 
-    public static void main(String[] args)  {
+public class Chat_Client  {
+
+    public static void main(String[] args) throws InterruptedException {
          String address;
          int port;
          //immetto l'indirizzo e la porta del server
@@ -167,14 +162,14 @@ public class Chat_Client {
              chatclient Session=new chatclient(InetAddress.getByName(address), port);
 
              try {
-                //attivo startclient
+                
                 Session.startClient(); 
              }//try
 
              catch (IOException e ){
                 System.err.println(e.getMessage());
-             }//catch
-          }//try
+             }
+          }
 
         catch (UnknownHostException e){
              System.out.println("Host sconosciuto");
