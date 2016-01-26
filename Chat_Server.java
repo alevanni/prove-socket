@@ -18,15 +18,16 @@ class ChatServerClientHandler extends Thread {
     private Scanner in;
     private PrintWriter  out;
     private Socket socket;
-    public ChatServerClientHandler(Socket given_socket, Scanner given_in, PrintWriter given_out) {
+    private String led;
+    public ChatServerClientHandler(Socket given_socket, Scanner given_in, PrintWriter given_out, String given_led) {
          this.in=given_in;
          this.socket=given_socket;
          this.out=given_out;
-         
+         this.led=given_led;
     }
   
     public void run() {
-     
+         Process myProcess;
          String line;
          boolean stopthread=false;
          
@@ -36,7 +37,12 @@ class ChatServerClientHandler extends Thread {
                    line=in.nextLine();
                    out.println(line);
                    out.flush();
-                   
+                   try {
+                      myProcess=Runtime.getRuntime().exec("sudo python ../led/led2.py "+led);
+                   }
+                   catch(IOException e){
+                      System.out.println("Led non acceso");
+                   }
                    if (line.equals("quit")) stopthread=true;
 
               } 
@@ -62,6 +68,11 @@ class chatserver {
          ServerSocket serversocket;
          ExecutorService executor = Executors.newCachedThreadPool();
          Socket socket1, socket2;
+         String firstLed;
+         String secondLed;
+         firstLed="18";
+         secondLed="23";
+         Process myProcess;
          try {
               serversocket=new ServerSocket(port);
          }
@@ -77,19 +88,29 @@ class chatserver {
               try {
                    //attendo la connessione del primo
                    socket1=serversocket.accept(); 
-                   System.out.println("Ricevuta connessione da "+socket1);
+                   System.out.println("Received Client Connection "+socket1);
              
                    out1=new PrintWriter(socket1.getOutputStream());
                    in1=new Scanner(socket1.getInputStream());
-       
+                   try {
+                      myProcess=Runtime.getRuntime().exec("sudo python ../led/led2.py "+firstLed);
+                   }
+                   catch(IOException e){
+                      System.out.println("Led non acceso");
+                   }
                    //attendo la connessione del secondo
                    socket2=serversocket.accept();
-                   System.out.println("Ricevuta connessione da "+socket2);
+                   System.out.println("Received Client Connection "+socket2);
 
                    out2=new PrintWriter(socket2.getOutputStream());
                    in2=new Scanner(socket2.getInputStream()); 
        
-       
+                   try {
+                      myProcess=Runtime.getRuntime().exec("sudo python ../led/led2.py "+secondLed);
+                   }
+                   catch(IOException e){
+                      System.out.println("Led non acceso");
+                   }
                    //passo la richiesta alla chat
                    out1.println("Chat ready!");
                    out1.flush();
@@ -99,8 +120,8 @@ class chatserver {
             
                    //grazie a due processi distinti posso mandare un messaggio senza attendere la risposta dell'altro
                    //li inizializzo con gli scanner e i printwriter
-                   executor.submit(new ChatServerClientHandler(socket1, in1, out2)); 
-                   executor.submit(new ChatServerClientHandler(socket2, in2, out1));
+                   executor.submit(new ChatServerClientHandler(socket1, in1, out2, firstLed)); 
+                   executor.submit(new ChatServerClientHandler(socket2, in2, out1, secondLed));
               } 
 
               catch (IOException e) {
@@ -124,3 +145,4 @@ public class Chat_Server {
     }
 
 }
+
