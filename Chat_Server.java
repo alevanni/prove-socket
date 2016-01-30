@@ -14,25 +14,29 @@ import java.net.*;
 
 //classe che riceve i messaggi da un client e li passa all'altro
 class ChatServerClientHandler extends Thread {
-
-    private Scanner in;
-    private PrintWriter  out;
-    private Socket socket;
-    private String led;
+    
+    private Scanner in; // stream di entrata
+    private PrintWriter  out; // stream di uscita
+    private Socket socket; // porta 
+    private String led;  //led a cui e' connesso l'utente
+    
+    //costruttore 
     public ChatServerClientHandler(Socket given_socket, Scanner given_in, PrintWriter given_out, String given_led) {
          this.in=given_in;
          this.socket=given_socket;
          this.out=given_out;
          this.led=given_led;
     }
-  
+    
+    // metodo che prende un messaggio dallo stream di entrata di un utente lo passa allo stream di uscita dell'altro
+    // si esce scrivendo "quit" 
     public void run() {
          Process myProcess;
          String line;
-         boolean stopthread=false;
+         boolean stopThread=false;
          
                       
-              while (!stopthread){
+              while (!stopThread){
              
                    line=in.nextLine();
                    out.println(line);
@@ -43,7 +47,7 @@ class ChatServerClientHandler extends Thread {
                    catch(IOException e){
                       System.out.println("Led non acceso");
                    }
-                   if (line.equals("quit")) stopthread=true;
+                   if (line.equals("quit")) stopThread=true;
 
               } 
 
@@ -53,26 +57,30 @@ class ChatServerClientHandler extends Thread {
     }
 }
  ////////////////////
- 
-class chatserver {
+ // classe che smista le connessioni
+ // prende in entrata il numero della porta a cui si connettono i client
+class ChatServer {
 
     private int port;
-
-    public chatserver(int given_port){//costruttore
+    //costruttore
+    public ChatServer(int given_port){
         this.port=given_port;
     }
-
-    public void startserver() {//startServer
-         PrintWriter out1, out2;
-         Scanner in1, in2;
-         ServerSocket serversocket;
-         ExecutorService executor = Executors.newCachedThreadPool();
-         Socket socket1, socket2;
-         String firstLed;
+   
+    //metodo che attiva il server
+    public void startserver() {
+         
+         PrintWriter out1, out2; // connessioni in uscita del primo  del secondo utente
+         Scanner in1, in2;  // connessioni in entrata del primo e del secondo utente
+         ServerSocket serversocket; // porta su cui sta in ascolto il server
+         ExecutorService executor = Executors.newCachedThreadPool(); 
+         Socket socket1, socket2; // porte su cui vengono smistati i due utenti
+         String firstLed; 
          String secondLed;
          firstLed="18";
          secondLed="23";
          Process myProcess;
+
          try {
               serversocket=new ServerSocket(port);
          }
@@ -87,6 +95,7 @@ class chatserver {
          while (true) {
               try {
                    //attendo la connessione del primo
+                   // e creo gli stream di entrata e uscita
                    socket1=serversocket.accept(); 
                    System.out.println("Received Client Connection "+socket1);
              
@@ -98,7 +107,9 @@ class chatserver {
                    catch(IOException e){
                       System.out.println("Led non acceso");
                    }
-                   //attendo la connessione del secondo
+                   // attendo la connessione del secondo
+                   // e creo gli stream di entrata e uscita
+
                    socket2=serversocket.accept();
                    System.out.println("Received Client Connection "+socket2);
 
@@ -111,15 +122,15 @@ class chatserver {
                    catch(IOException e){
                       System.out.println("Led non acceso");
                    }
-                   //passo la richiesta alla chat
+                   //notifico l'avvenuta connessione agli utenti
                    out1.println("Chat ready!");
                    out1.flush();
        
                    out2.println("Chat ready!");
                    out2.flush();
             
-                   //grazie a due processi distinti posso mandare un messaggio senza attendere la risposta dell'altro
-                   //li inizializzo con gli scanner e i printwriter
+                   // grazie a due processi distinti posso mandare un messaggio senza attendere la risposta dell'altro
+                   // ad ogni utente e' collegato un led
                    executor.submit(new ChatServerClientHandler(socket1, in1, out2, firstLed)); 
                    executor.submit(new ChatServerClientHandler(socket2, in2, out1, secondLed));
               } 
@@ -135,12 +146,13 @@ class chatserver {
 }
 
 ///////////////////////////////////////
-//Main
+
 public class Chat_Server {
 
     public static void main(String[] args) {
-
-         chatserver session=new chatserver(4332);
+         
+         // attiva il server 
+         ChatServer session=new ChatServer(4332);
          session.startserver(); //attivo il server
     }
 

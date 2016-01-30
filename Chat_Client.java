@@ -12,27 +12,27 @@ import java.util.concurrent.*;
 // PROGRAMMA CHE GESTISCE IL CLIENT DELLA CHAT // 
 /////////////////////////////////////////////////
 
-//classe che lancia due thread, uno per mandare messaggi e uno per riceverli
-class chatclient  {
+// classe che lancia due thread, uno per mandare messaggi e uno per riceverli
+class ChatClient  {
     private int port; 
     private InetAddress ip; 
     Thread send, receive; 
-    boolean stopthread=false; 
+    boolean stopThread=false; 
 
-    public chatclient(InetAddress ip, int port) {
+    public ChatClient(InetAddress ip, int port) {
         this.port=port;
         this.ip=ip;
-    }//costruttore
+    }
  
 
     public void startClient() throws IOException, InterruptedException {
 
-        String launch;
+        String launch; // stringa che notifica l'avvenuta connessione
         Socket socket=new Socket(ip, port);
         Scanner stdin = new Scanner(System.in); 
-        Scanner socketIn ;
-        PrintWriter socketOut;
-        String s;  
+        Scanner socketIn ; // stream di entrata
+        PrintWriter socketOut; // stream di uscita
+         
  
         try {
              socketOut = new PrintWriter(socket.getOutputStream());
@@ -67,7 +67,7 @@ class chatclient  {
 
 class Send implements Runnable  {
 
-   private PrintWriter socketOut;
+   private PrintWriter socketOut; // serve solo lo stream di uscita
    
 
    public Send(PrintWriter given_socketOut) {
@@ -78,19 +78,18 @@ class Send implements Runnable  {
 
    public void run()  {
 
-       boolean stopthread=false;
+       boolean stopThread=false; // variabile di controllo
        Scanner stdin = new Scanner(System.in); 
-       String line;
+       String line; // messaggio da invare 
    
-       while (!stopthread)  {
+       while (!stopThread)  {
       
-           System.out.print("I say: ");
            line = stdin.nextLine();
            socketOut.println(line);
            socketOut.flush();
 
            if (line.equals("quit")) {
-              stopthread=true;
+              stopThread=true;
            }
              
        }
@@ -105,7 +104,7 @@ class Send implements Runnable  {
 
 class Receive implements Runnable {
 
-    private Scanner socketIn;
+    private Scanner socketIn; //serve solo lo stream di entrata
     
 
     public Receive(Scanner given_socketIn)  {
@@ -117,54 +116,53 @@ class Receive implements Runnable {
 
     public void run()  {
      
-        String socketline;
-        boolean stopthread=false; 
+        String socketLine; //messaggio ricevuto
+        boolean stopThread=false; //variabile di controllo
      
           
-         while (!stopthread) { 
+         while (!stopThread) { 
        
             if (socketIn.hasNextLine())  {
-                socketline=socketIn.nextLine();
+                socketLine=socketIn.nextLine();
          
-                if (socketline.equals("quit"))  stopthread=true;         
+                if (socketLine.equals("quit"))  stopThread=true;         
                 
-                else    System.out.println("Received: "+ socketline)   ;             
+                else    System.out.println("Received: "+ socketLine);             
             }
          
          }
 
          System.out.println("You can't receive messages anymore.");
          
-    
-
-         
+      
          
     }
 }
 
 ////////////////////////////////////////////////////////////////////
-//Main
+
 
 public class Chat_Client  {
-
+    //main
     public static void main(String[] args) throws InterruptedException {
-         String address;
-         int port;
-         //immetto l'indirizzo e la porta del server
-         Scanner standard = new Scanner(System.in);
+         String address; //indirizzo del server
+         int port; // porta a cui connettersi
+         // immetto tutto da terminale
+         
+         Scanner standard = new Scanner(System.in);  
          System.out.println("Address:");
          address=standard.nextLine();
          System.out.println("Port");
          port=standard.nextInt();
   
-         //ora creo il client
+         // creo il client
          try {
-             chatclient Session=new chatclient(InetAddress.getByName(address), port);
+             ChatClient Session=new ChatClient(InetAddress.getByName(address), port);
 
              try {
                 
                 Session.startClient(); 
-             }//try
+             }
 
              catch (IOException e ){
                 System.err.println(e.getMessage());
